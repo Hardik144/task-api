@@ -1,10 +1,24 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 app = FastAPI(
     title="Task API",
     description="FlyRank Backend Assignment",
     version="1.0.0"
 )
+
+# Temporary in-memory database
+tasks = [
+    {
+        "id": 1,
+        "title": "Learn FastAPI",
+        "completed": False
+    },
+    {
+        "id": 2,
+        "title": "Build CRUD API",
+        "completed": False
+    }
+]
 
 
 @app.get("/")
@@ -19,3 +33,20 @@ def health():
     return {
         "status": "healthy"
     }
+
+
+@app.get("/tasks")
+def get_tasks():
+    return tasks
+
+
+@app.get("/tasks/{task_id}")
+def get_task(task_id: int):
+    for task in tasks:
+        if task["id"] == task_id:
+            return task
+
+    raise HTTPException(
+        status_code=404,
+        detail="Task not found"
+    )
