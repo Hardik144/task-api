@@ -1,48 +1,27 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException
 
-app = FastAPI(
-    title="Task API",
-    description="FlyRank Backend Assignment",
-    version="1.0.0"
-)
+from app.models import TaskCreate
+from app.data import tasks
+
+router = APIRouter()
 
 
-class TaskCreate(BaseModel):
-    title: str
-    completed: bool = False
-
-
-tasks = [
-    {
-        "id": 1,
-        "title": "Learn FastAPI",
-        "completed": False
-    },
-    {
-        "id": 2,
-        "title": "Build CRUD API",
-        "completed": False
-    }
-]
-
-
-@app.get("/")
+@router.get("/")
 def root():
     return {"message": "Welcome to the Task API!"}
 
 
-@app.get("/health")
+@router.get("/health")
 def health():
     return {"status": "healthy"}
 
 
-@app.get("/tasks")
+@router.get("/tasks")
 def get_tasks():
     return tasks
 
 
-@app.get("/tasks/{task_id}")
+@router.get("/tasks/{task_id}")
 def get_task(task_id: int):
     for task in tasks:
         if task["id"] == task_id:
@@ -51,7 +30,7 @@ def get_task(task_id: int):
     raise HTTPException(status_code=404, detail="Task not found")
 
 
-@app.post("/tasks", status_code=201)
+@router.post("/tasks", status_code=201)
 def create_task(task: TaskCreate):
     new_task = {
         "id": len(tasks) + 1,
@@ -63,7 +42,7 @@ def create_task(task: TaskCreate):
     return new_task
 
 
-@app.put("/tasks/{task_id}")
+@router.put("/tasks/{task_id}")
 def update_task(task_id: int, updated_task: TaskCreate):
     for task in tasks:
         if task["id"] == task_id:
@@ -74,7 +53,7 @@ def update_task(task_id: int, updated_task: TaskCreate):
     raise HTTPException(status_code=404, detail="Task not found")
 
 
-@app.delete("/tasks/{task_id}")
+@router.delete("/tasks/{task_id}")
 def delete_task(task_id: int):
     for task in tasks:
         if task["id"] == task_id:
