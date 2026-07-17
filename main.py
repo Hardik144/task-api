@@ -1,10 +1,17 @@
 from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 
 app = FastAPI(
     title="Task API",
     description="FlyRank Backend Assignment",
     version="1.0.0"
 )
+
+
+class TaskCreate(BaseModel):
+    title: str
+    completed: bool = False
+
 
 # Temporary in-memory database
 tasks = [
@@ -23,16 +30,12 @@ tasks = [
 
 @app.get("/")
 def root():
-    return {
-        "message": "Welcome to the Task API!"
-    }
+    return {"message": "Welcome to the Task API!"}
 
 
 @app.get("/health")
 def health():
-    return {
-        "status": "healthy"
-    }
+    return {"status": "healthy"}
 
 
 @app.get("/tasks")
@@ -46,7 +49,16 @@ def get_task(task_id: int):
         if task["id"] == task_id:
             return task
 
-    raise HTTPException(
-        status_code=404,
-        detail="Task not found"
-    )
+    raise HTTPException(status_code=404, detail="Task not found")
+
+
+@app.post("/tasks", status_code=201)
+def create_task(task: TaskCreate):
+    new_task = {
+        "id": len(tasks) + 1,
+        "title": task.title,
+        "completed": task.completed
+    }
+
+    tasks.append(new_task)
+    return new_task
