@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from app.models import TaskCreate
 
 from app.database import get_connection
 
@@ -62,6 +63,45 @@ def get_task(task_id: int):
             status_code=404,
             detail="Task not found"
         )
+
+    return {
+        "id": row["id"],
+        "title": row["title"],
+        "completed": bool(row["completed"])
+    }
+
+@router.post("/tasks", status_code=201)
+def create_task(task: TaskCreate):
+
+    if not task.title.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Title cannot be empty"
+        )
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        INSERT INTO tasks(title, completed)
+        VALUES (?, ?)
+        """,
+        (task.title, task.completed)
+    )
+
+    task_id = cursor.lastrowid
+
+    conn.commit()
+
+    cursor.execute(
+        "SELECT * FROM tasks WHERE id = ?",
+        (task_id,)
+    )
+
+    row = cursor.fetchone()
+
+    conn.close()
 
     return {
         "id": row["id"],
