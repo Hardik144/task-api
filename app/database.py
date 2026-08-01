@@ -1,10 +1,18 @@
 import psycopg2
-
+import time
 from app.config import DATABASE_URL
 
-
 def get_connection():
-    return psycopg2.connect(DATABASE_URL)
+    retries = 10
+
+    while retries > 0:
+        try:
+            return psycopg2.connect(DATABASE_URL)
+        except psycopg2.OperationalError:
+            retries -= 1
+            time.sleep(2)
+
+    raise Exception("Could not connect to PostgreSQL")
 
 
 def initialize_database():
